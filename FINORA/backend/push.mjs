@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto'
 import { getStore } from '@netlify/blobs'
 import { EncryptJWT, jwtDecrypt } from 'jose'
-import webPush from 'web-push'
 import { HttpError } from './sheets.mjs'
 
 const store = () =>
@@ -142,7 +141,8 @@ export async function deliverReminders(config) {
         )
         if (!saved.modified) return
         try {
-          await webPush.sendNotification(
+        const pushModule = await import('web-push')
+        await (pushModule.default ?? pushModule).sendNotification(
             payload.subscription,
             JSON.stringify({ type: 'reminder' }),
             {
