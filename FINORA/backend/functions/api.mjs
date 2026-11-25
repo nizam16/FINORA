@@ -269,8 +269,15 @@ export default async function handler(req) {
     if (path === 'login' && req.method === 'GET') return loginPage()
     if (req.method !== 'POST')
       throw new HttpError(405, 'Metode tidak diizinkan.')
-    if (req.headers.get('origin') !== c.origin)
-      throw new HttpError(403, 'Origin tidak diizinkan.')
+const origin = req.headers.get('origin')
+const sameOriginLogin =
+  path === 'login' &&
+  (origin === null || origin === 'null') &&
+  url.origin === c.origin &&
+  req.headers.get('sec-fetch-site') === 'same-origin'
+
+if (origin !== c.origin && !sameOriginLogin)
+  throw new HttpError(403, 'Origin tidak diizinkan.')
     const session = await getSession(req, c)
     if (path === 'login') {
       if (!req.headers.get('content-type')?.startsWith('application/x-www-form-urlencoded'))
