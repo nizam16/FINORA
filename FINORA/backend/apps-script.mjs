@@ -1,7 +1,10 @@
 import {createHmac} from 'node:crypto'
 import {HttpError} from './sheets.mjs'
 export async function scriptCall(config, action, args={}) {
-  const payload=JSON.stringify({action,args,ts:Date.now()})
+const payload = JSON.stringify({ action, args, ts: Date.now() }).replace(
+  /[\u007f-\uffff]/g,
+  (char) => '\\u' + char.charCodeAt(0).toString(16).padStart(4, '0'),
+)
   const signature=createHmac('sha256',config.secret).update(payload).digest('base64url')
   const body=JSON.stringify({payload,signature})
   if(Buffer.byteLength(body)>4_500_000)throw new HttpError(413,'Data melebihi batas sinkronisasi Apps Script.')
